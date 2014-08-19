@@ -134,7 +134,7 @@ bool publishMap(map_store::PublishMap::Request &request,
   if (nh.hasParam("map_manager/map_frame_id")) {
     nh.getParam("map_manager/map_frame_id", frame_id);
   } else {
-    ROS_WARN("Parameter 'map_frame_id' not set. Using default frame ID: '/map'");
+    ROS_WARN("Parameter 'map_frame_id' not set. Using default frame ID: '/map'"); 
   }
 
   nh.setParam("last_map_id", last_map);
