@@ -19,10 +19,7 @@
   <build_depend>roscpp</build_depend>
   <build_depend>rostest</build_depend>
   <build_depend>warehouse_ros</build_depend>
-<<<<<<< HEAD
   <build_depend>std_msgs</build_depend>
-=======
->>>>>>> a03101a854cc6623c3ad3844b0ba8aa3db401f24
 
   <run_depend>message_runtime</run_depend>
   <run_depend>nav_msgs</run_depend>
@@ -30,10 +27,6 @@
   <run_depend>roscpp</run_depend>
   <run_depend>rospy</run_depend>
   <run_depend>warehouse_ros</run_depend>
-<<<<<<< HEAD
   <run_depend>std_msgs</run_depend>
-
-=======
->>>>>>> a03101a854cc6623c3ad3844b0ba8aa3db401f24
 </package>
 

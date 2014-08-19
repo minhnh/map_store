@@ -8,10 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rostest
   warehouse_ros
-<<<<<<< HEAD
   std_msgs
-=======
->>>>>>> a03101a854cc6623c3ad3844b0ba8aa3db401f24
 )
 
 add_message_files(
@@ -27,14 +24,9 @@ add_service_files(
   PublishMap.srv
   RenameMap.srv
   SaveMap.srv
-<<<<<<< HEAD
   SetOrigin.srv
 )
 generate_messages(DEPENDENCIES std_msgs)
-=======
-)
-generate_messages()
->>>>>>> a03101a854cc6623c3ad3844b0ba8aa3db401f24
 
 catkin_package( CATKIN_DEPENDS message_runtime )
 
