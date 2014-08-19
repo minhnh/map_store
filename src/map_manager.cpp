@@ -55,8 +55,11 @@ service calls:
 #include <map_store/PublishMap.h>
 #include <map_store/DeleteMap.h>
 #include <map_store/RenameMap.h>
+#include <map_store/SetOrigin.h>
 #include <map_store/MapListEntry.h>
 #include <nav_msgs/GetMap.h>
+
+#include <std_msgs/Header.h>
 
 #include <string>
 #include <sstream>
@@ -126,12 +129,23 @@ bool publishMap(map_store::PublishMap::Request &request,
 
   last_map = request.map_id;
   ros::NodeHandle nh;
+
+  std::string frame_id = "/map"; // default map name
+  if (nh.hasParam("map_manager/map_frame_id")) {
+    nh.getParam("map_manager/map_frame_id", frame_id);
+  } else {
+    ROS_WARN("Parameter 'map_frame_id' not set. Using default frame ID: '/map'");
+  }
+
   nh.setParam("last_map_id", last_map);
   nav_msgs::OccupancyGridConstPtr map;
   if (lookupMap(request.map_id, map))
   {
     try {
-      map_publisher.publish(map);
+      nav_msgs::OccupancyGrid prefixedMap = *map;
+      prefixedMap.header.frame_id = frame_id;
+
+      map_publisher.publish(prefixedMap);
     } catch(...) {
       ROS_ERROR("Error publishing map");
     }
@@ -188,6 +202,73 @@ bool dynamicMap(nav_msgs::GetMap::Request &request,
   return true;
 }
 
+bool setOrigin(map_store::SetOrigin::Request &request,
+               map_store::SetOrigin::Response &response)
+{ 
+  // TODO: this is a long-winded method to set the origin of the map. Fix it later.
+
+  ROS_DEBUG("Searching for '%s'", request.map_id.c_str());
+
+  nav_msgs::OccupancyGridConstPtr map;
+  nav_msgs::OccupancyGrid offsetMap;
+
+  // Create new map with specified offset:
+  if (lookupMap(request.map_id, map))
+  {
+    offsetMap = *map;
+
+    offsetMap.info.origin.position.x = request.pos_x;
+    offsetMap.info.origin.position.y = request.pos_y;
+
+    offsetMap.info.origin.orientation.x = request.rot_x;
+    offsetMap.info.origin.orientation.y = request.rot_y;
+    offsetMap.info.origin.orientation.z = request.rot_z;
+    offsetMap.info.origin.orientation.w = request.rot_w;
+  }
+  else
+  {
+    ROS_ERROR("Map ID specified for origin offset was not found in the database");
+    return false;
+  }
+
+  // Retrieve and copy metadata from the old map:
+  MapVector all_maps;
+  map_store::MapListEntry new_offset_entry;
+  all_maps = map_collection->pullAllResults( mr::Query(), true, "creation_time", false );
+  bool wasMapFound = false;
+
+  for(MapVector::const_iterator map_iter = all_maps.begin(); map_iter != all_maps.end() && !wasMapFound; map_iter++)
+  {
+    if ( (*map_iter)->lookupString("uuid").compare(request.map_id) == 0 ) {
+      new_offset_entry.name = (*map_iter)->lookupString("name");
+      new_offset_entry.date = (int64_t)(*map_iter)->lookupDouble("creation_time");
+      new_offset_entry.session_id = (*map_iter)->lookupString("session_id");
+      new_offset_entry.map_id = (*map_iter)->lookupString("uuid");
+
+      wasMapFound = true;
+    }
+  }
+
+  if (!wasMapFound) {
+    ROS_ERROR("The desired map (for setting the origin) was not found in the database");
+    return false;
+  }
+
+  // Delete old map with old origin:
+  if (map_collection->removeMessages(mr::Query("uuid", request.map_id)) != 1) {
+    ROS_ERROR("FAILED: Could not remove previous origin settings");
+    return false;
+  }
+
+  // Add new map with updated origin (maintain the same metadata from the previous map):
+  mr::Metadata metadata = mr::Metadata("uuid", new_offset_entry.map_id,
+                                       "session_id", new_offset_entry.session_id,
+                                       "name", new_offset_entry.name);
+  map_collection->insert(offsetMap, metadata);
+
+  return true;
+}
+
 int main (int argc, char** argv)
 {
   ros::init(argc, argv, "map_manager");
@@ -209,7 +290,7 @@ int main (int argc, char** argv)
     if (lookupMap(last_map, map))
     {
       try {
-	map_publisher.publish(map);
+	       map_publisher.publish(map);
       } catch(...) {
 	ROS_ERROR("Error publishing map");
       }
@@ -225,6 +306,7 @@ int main (int argc, char** argv)
   ros::ServiceServer delete_map_service = nh.advertiseService("delete_map", deleteMap);
   ros::ServiceServer rename_map_service = nh.advertiseService("rename_map", renameMap);
   ros::ServiceServer dynamic_map = nh.advertiseService("dynamic_map", dynamicMap);
+  ros::ServiceServer set_map_origin = nh.advertiseService("set_origin", setOrigin);
 
   ROS_DEBUG("spinning.");
 

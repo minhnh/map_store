@@ -112,8 +112,8 @@ int main (int argc, char** argv)
   map_collection = new mr::MessageCollection<nav_msgs::OccupancyGrid>("map_store", "maps");
 
   ros::Subscriber map_subscriber = nh.subscribe("map", 1, onMapReceived);
-
   ros::ServiceServer name_latest_map_service = nh.advertiseService("save_map", saveMap);
+
   dynamic_map_service_client = nh.serviceClient<nav_msgs::GetMap>("dynamic_map");
 
   ROS_DEBUG("spinning.");
