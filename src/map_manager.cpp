@@ -55,12 +55,18 @@ service calls:
 #include <map_store/PublishMap.h>
 #include <map_store/DeleteMap.h>
 #include <map_store/RenameMap.h>
+<<<<<<< HEAD
 #include <map_store/SetOrigin.h>
 #include <map_store/MapListEntry.h>
 #include <nav_msgs/GetMap.h>
 
 #include <std_msgs/Header.h>
 
+=======
+#include <map_store/MapListEntry.h>
+#include <nav_msgs/GetMap.h>
+
+>>>>>>> a03101a854cc6623c3ad3844b0ba8aa3db401f24
 #include <string>
 #include <sstream>
 #include <exception>
@@ -129,6 +135,7 @@ bool publishMap(map_store::PublishMap::Request &request,
 
   last_map = request.map_id;
   ros::NodeHandle nh;
+<<<<<<< HEAD
 
   std::string frame_id = "/map"; // default map name
   if (nh.hasParam("map_manager/map_frame_id")) {
@@ -137,15 +144,21 @@ bool publishMap(map_store::PublishMap::Request &request,
     ROS_WARN("Parameter 'map_frame_id' not set. Using default frame ID: '/map'"); 
   }
 
+=======
+>>>>>>> a03101a854cc6623c3ad3844b0ba8aa3db401f24
   nh.setParam("last_map_id", last_map);
   nav_msgs::OccupancyGridConstPtr map;
   if (lookupMap(request.map_id, map))
   {
     try {
+<<<<<<< HEAD
       nav_msgs::OccupancyGrid prefixedMap = *map;
       prefixedMap.header.frame_id = frame_id;
 
       map_publisher.publish(prefixedMap);
+=======
+      map_publisher.publish(map);
+>>>>>>> a03101a854cc6623c3ad3844b0ba8aa3db401f24
     } catch(...) {
       ROS_ERROR("Error publishing map");
     }
@@ -202,6 +215,7 @@ bool dynamicMap(nav_msgs::GetMap::Request &request,
   return true;
 }
 
+<<<<<<< HEAD
 bool setOrigin(map_store::SetOrigin::Request &request,
                map_store::SetOrigin::Response &response)
 { 
@@ -269,6 +283,8 @@ bool setOrigin(map_store::SetOrigin::Request &request,
   return true;
 }
 
+=======
+>>>>>>> a03101a854cc6623c3ad3844b0ba8aa3db401f24
 int main (int argc, char** argv)
 {
   ros::init(argc, argv, "map_manager");
@@ -290,7 +306,11 @@ int main (int argc, char** argv)
     if (lookupMap(last_map, map))
     {
       try {
+<<<<<<< HEAD
 	       map_publisher.publish(map);
+=======
+	map_publisher.publish(map);
+>>>>>>> a03101a854cc6623c3ad3844b0ba8aa3db401f24
       } catch(...) {
 	ROS_ERROR("Error publishing map");
       }
@@ -306,7 +326,10 @@ int main (int argc, char** argv)
   ros::ServiceServer delete_map_service = nh.advertiseService("delete_map", deleteMap);
   ros::ServiceServer rename_map_service = nh.advertiseService("rename_map", renameMap);
   ros::ServiceServer dynamic_map = nh.advertiseService("dynamic_map", dynamicMap);
+<<<<<<< HEAD
   ros::ServiceServer set_map_origin = nh.advertiseService("set_origin", setOrigin);
+=======
+>>>>>>> a03101a854cc6623c3ad3844b0ba8aa3db401f24
 
   ROS_DEBUG("spinning.");
 
